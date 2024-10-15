@@ -120,7 +120,7 @@ async def ensure_updated(
         try:
             cont = await to_thread(_update, vars_dir=vars_dir, timeout=timeout)
         except (URLError, TimeoutE) as e:
-            log.warn("%s", e)
+            log.warning("%s", e)
             await sleep(timeout)
         else:
             if not cont:

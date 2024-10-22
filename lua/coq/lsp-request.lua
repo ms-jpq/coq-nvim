@@ -34,7 +34,7 @@
   local cid = -1
   local acc = {}
 
-  COQ.lsp_pull = function(client, uid, lo, hi)
+  COQ.lsp_pull = function(client, name, uid, lo, hi)
     vim.validate {
       uid = {uid, "number"},
       lo = {lo, "number"},
@@ -211,7 +211,6 @@
       lsp_capability)
       local filter = make_filter(include_clients, client_names)
 
-      lsp_capability = lsp_capability or lsp_method
       vim.validate {
         buf = {buf, "number"},
         lsp_method = {lsp_method, "string"},

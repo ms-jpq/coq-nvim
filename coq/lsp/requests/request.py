@@ -78,7 +78,7 @@ def _events(_: str) -> Tuple[AbstractEventLoop, ALock, Event]:
 
 
 async def _lsp_pull(
-    n: int, client: Optional[str], uid: int
+    n: int, name: str, client: Optional[str], uid: int
 ) -> AsyncIterator[Sequence[Any]]:
     lo = 1
     hi = n
@@ -86,7 +86,7 @@ async def _lsp_pull(
         part: Sequence[Any] = await Nvim.api.exec_lua(
             tuple,
             f"return {NAMESPACE}.lsp_pull(...)",
-            (client, uid, lo, hi),
+            (client, name, uid, lo, hi),
         )
         lo = hi + 1
         hi = hi + n
@@ -162,7 +162,7 @@ async def async_request(
                         client, multipart = state.acc.pop()
                         if multipart:
                             async for part in _lsp_pull(
-                                multipart, client=client.name, uid=uid
+                                multipart, name=name, client=client.name, uid=uid
                             ):
                                 if isinstance(
                                     client.message, MutableMapping

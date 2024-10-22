@@ -32,7 +32,7 @@
   end
 
   local cids = {}
-  local acc = {}
+  local accs = {}
 
   COQ.lsp_pull = function(client, name, uid, lo, hi)
     vim.validate {
@@ -46,7 +46,7 @@
       return {}
     end
 
-    local items = acc[client] or {}
+    local items = (accs[name] or {})[client] or {}
     local a = {}
     for i = lo, hi do
       local item = items[i]
@@ -75,14 +75,15 @@
 
     if multipart then
       if uid > (cids[name] or -1) then
-        acc = {}
+        accs[name] = {}
       end
       if type(reply) == "table" then
+        accs[name] = accs[name] or {}
         if type(reply.items) == "table" then
-          acc[client] = reply.items
+          accs[name][client] = reply.items
           reply.items = {}
         else
-          acc[client] = reply
+          accs[name][client] = reply
           payload.reply = {}
         end
       end

@@ -195,6 +195,8 @@
 
     if type(capabilities) == "table" and capabilities[lsp_capability] then
       return true
+    elseif lsp_capability then
+      return false
     end
 
     return client.supports_method(lsp_capability or lsp_method)

@@ -193,10 +193,11 @@
       lsp_capability)
       local filter = make_filter(include_clients, client_names)
 
+      lsp_capability = lsp_capability or lsp_method
       vim.validate {
         buf = {buf, "number"},
         lsp_method = {lsp_method, "string"},
-        lsp_capability = {lsp_capability, "string", true},
+        lsp_capability = {lsp_capability, "string"},
         filter = {filter, "function"}
       }
 
@@ -204,10 +205,7 @@
       local clients = {}
 
       for id, client in pairs(get_clients(buf)) do
-        if
-          filter(client.name) and
-            client.supports_method(lsp_capability or lsp_method)
-         then
+        if filter(client.name) and client.supports_method(lsp_capability) then
           n_clients = n_clients + 1
           clients[id] = client
         end

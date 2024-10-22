@@ -193,8 +193,6 @@
     local capabilities = client.server_capabilities
     -- local dynamic_capabilities = client.dynamic_capabilities
 
-    vim.print({client = client.name, cap = capabilities[lsp_capability]})
-
     if type(capabilities) == "table" and capabilities[lsp_capability] then
       return true
     end

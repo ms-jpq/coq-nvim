@@ -185,12 +185,18 @@
   local _ = nil
 
   (function()
-    local lsp_clients = function(include_clients, client_names, buf, lsp_method)
+    local lsp_clients = function(
+      include_clients,
+      client_names,
+      buf,
+      lsp_method,
+      lsp_capability)
       local filter = make_filter(include_clients, client_names)
 
       vim.validate {
         buf = {buf, "number"},
         lsp_method = {lsp_method, "string"},
+        lsp_capability = {lsp_capability, "string", true},
         filter = {filter, "function"}
       }
 
@@ -198,7 +204,10 @@
       local clients = {}
 
       for id, client in pairs(get_clients(buf)) do
-        if filter(client.name) and client.supports_method(lsp_method) then
+        if
+          filter(client.name) and
+            client.supports_method(lsp_capability or lsp_method)
+         then
           n_clients = n_clients + 1
           clients[id] = client
         end
@@ -256,6 +265,7 @@
 
     local lsp_comp_base = function(
       lsp_method,
+      lsp_capability,
       name,
       multipart,
       session_id,
@@ -263,6 +273,7 @@
       pos)
       vim.validate {
         lsp_method = {lsp_method, "string"},
+        lsp_capability = {lsp_capability, "string"},
         client_names = {client_names, "table"},
         name = {name, "string"},
         pos = {pos, "table"},
@@ -278,7 +289,7 @@
 
       local buf = vim.api.nvim_get_current_buf()
       local n_clients, clients =
-        lsp_clients(false, client_names, buf, lsp_method)
+        lsp_clients(false, client_names, buf, lsp_method, lsp_capability)
 
       local make_params = function(client)
         local col = (function()
@@ -318,6 +329,7 @@
     COQ.lsp_comp = function(name, multipart, session_id, client_names, pos)
       lsp_comp_base(
         "textDocument/completion",
+        "completionProvider",
         name,
         multipart,
         session_id,
@@ -334,6 +346,7 @@
       pos)
       lsp_comp_base(
         "textDocument/inlineCompletion",
+        "inlineCompletionProvider",
         name,
         multipart,
         session_id,

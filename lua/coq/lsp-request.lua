@@ -184,6 +184,24 @@
   end)()
   local _ = nil
 
+  local supports_method = function(client, lsp_method, lsp_capability)
+    vim.validate {
+      client = {client, "table"},
+      lsp_method = {lsp_method, "string"},
+      lsp_capability = {lsp_capability, "string", true}
+    }
+    local capabilities = client.server_capabilities
+    -- local dynamic_capabilities = client.dynamic_capabilities
+
+    vim.print({client = client.name, cap = capabilities[lsp_capability]})
+
+    if type(capabilities) == "table" and capabilities[lsp_capability] then
+      return true
+    end
+
+    return client.supports_method(lsp_capability or lsp_method)
+  end
+
   (function()
     local lsp_clients = function(
       include_clients,
@@ -197,7 +215,7 @@
       vim.validate {
         buf = {buf, "number"},
         lsp_method = {lsp_method, "string"},
-        lsp_capability = {lsp_capability, "string"},
+        lsp_capability = {lsp_capability, "string", true},
         filter = {filter, "function"}
       }
 
@@ -205,7 +223,10 @@
       local clients = {}
 
       for id, client in pairs(get_clients(buf)) do
-        if filter(client.name) and client.supports_method(lsp_capability) then
+        if
+          filter(client.name) and
+            supports_method(client, lsp_method, lsp_capability)
+         then
           n_clients = n_clients + 1
           clients[id] = client
         end
@@ -271,7 +292,7 @@
       pos)
       vim.validate {
         lsp_method = {lsp_method, "string"},
-        lsp_capability = {lsp_capability, "string"},
+        lsp_capability = {lsp_capability, "string", true},
         client_names = {client_names, "table"},
         name = {name, "string"},
         pos = {pos, "table"},
@@ -327,7 +348,7 @@
     COQ.lsp_comp = function(name, multipart, session_id, client_names, pos)
       lsp_comp_base(
         "textDocument/completion",
-        "completionProvider",
+        nil,
         name,
         multipart,
         session_id,

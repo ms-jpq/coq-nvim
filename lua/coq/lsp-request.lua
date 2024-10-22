@@ -31,17 +31,18 @@
     end
   end
 
-  local cid = -1
+  local cids = {}
   local acc = {}
 
   COQ.lsp_pull = function(client, name, uid, lo, hi)
     vim.validate {
+      name = {name, "string"},
       uid = {uid, "number"},
       lo = {lo, "number"},
       hi = {hi, "number"}
     }
 
-    if uid > cid then
+    if uid > (cids[name] or -1) then
       return {}
     end
 
@@ -73,7 +74,7 @@
     }
 
     if multipart then
-      if uid > cid then
+      if uid > (cids[name] or -1) then
         acc = {}
       end
       if type(reply) == "table" then
@@ -86,7 +87,7 @@
         end
       end
     end
-    cid = uid
+    cids[name] = uid
 
     COQ.Lsp_notify(payload)
   end

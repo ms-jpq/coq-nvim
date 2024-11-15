@@ -101,7 +101,7 @@ class Worker(BaseWorker[LSPClient, None]):
             always_on_top=self._options.always_on_top,
             weight_adjust=self._options.weight_adjust,
             context=context,
-            chunk=self._max_results * 2,
+            chunk=self._max_results,
             clients=set() if context.manual else cached_clients,
         )
 
@@ -126,11 +126,14 @@ class Worker(BaseWorker[LSPClient, None]):
             await self._with_interrupt(cont())
 
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
+        limit = (
+            BIGGEST_INT
+            if context.manual
+            else self._options.max_pulls or self._supervisor.match.max_results
+        )
+
         async with self._work_lock, self._working:
             try:
-                # TODO: extract this into an option
-                limit = BIGGEST_INT if context.manual else self._max_results * 6
-
                 use_cache, cached_clients, cached = self._cache.apply_cache(
                     context, always=False
                 )

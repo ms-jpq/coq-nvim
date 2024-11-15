@@ -24,6 +24,7 @@ from ...shared.executor import AsyncExecutor
 from ...shared.runtime import Supervisor
 from ...shared.runtime import Worker as BaseWorker
 from ...shared.settings import TagsClient
+from ...shared.sql import BIGGEST_INT
 from ...shared.timeit import timeit
 from ...shared.types import Completion, Context, Doc, Edit
 from ...tags.parse import parse, run
@@ -178,6 +179,11 @@ class Worker(BaseWorker[TagsClient, Tuple[Path, Path, PurePath]]):
         await self._ex.submit(cont())
 
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
+        limit = (
+            BIGGEST_INT
+            if context.manual
+            else self._options.max_pulls or self._supervisor.match.max_results
+        )
         async with self._work_lock:
             row, _ = context.position
             tags = self._db.select(
@@ -186,7 +192,7 @@ class Worker(BaseWorker[TagsClient, Tuple[Path, Path, PurePath]]):
                 line_num=row,
                 word=context.words,
                 sym=context.syms,
-                limitless=context.manual,
+                limit=limit,
             )
 
             seen: MutableSet[str] = set()

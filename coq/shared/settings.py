@@ -137,7 +137,9 @@ class _AlwaysTops:
 
 @dataclass(frozen=True)
 class BaseClient:
+    always_wait: bool
     enabled: bool
+    max_pulls: Optional[int]
     short_name: str
     weight_adjust: float
 

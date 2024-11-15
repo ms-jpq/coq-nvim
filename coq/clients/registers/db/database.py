@@ -7,7 +7,7 @@ from ....consts import REGISTER_DB
 from ....databases.types import DB
 from ....shared.parse import coalesce, tokenize
 from ....shared.settings import MatchOptions
-from ....shared.sql import BIGGEST_INT, init_db, like_esc
+from ....shared.sql import init_db, like_esc
 from .sql import sql
 
 
@@ -86,7 +86,7 @@ class RDB(DB):
         opts: MatchOptions,
         word: str,
         sym: str,
-        limitless: int,
+        limit,
     ) -> Iterator[RegWord]:
         def fetch(
             cursor: Cursor, match_syms: bool, stmt: str, linewise: bool
@@ -96,7 +96,7 @@ class RDB(DB):
                 {
                     "cut_off": opts.fuzzy_cutoff,
                     "look_ahead": opts.look_ahead,
-                    "limit": BIGGEST_INT if limitless else opts.max_results,
+                    "limit": limit,
                     "word": word,
                     "sym": (sym if match_syms else ""),
                     "like_word": like_esc(word[: opts.exact_matches]),

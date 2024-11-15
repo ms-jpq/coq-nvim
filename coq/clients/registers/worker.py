@@ -8,6 +8,7 @@ from ...shared.executor import AsyncExecutor
 from ...shared.runtime import Supervisor
 from ...shared.runtime import Worker as BaseWorker
 from ...shared.settings import RegistersClient
+from ...shared.sql import BIGGEST_INT
 from ...shared.types import Completion, Context, Doc, Edit, SnippetEdit, SnippetGrammar
 from .db.database import RDB
 
@@ -79,6 +80,11 @@ class Worker(BaseWorker[RegistersClient, None]):
         await self._ex.submit(cont())
 
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
+        limit = (
+            BIGGEST_INT
+            if context.manual
+            else self._options.max_pulls or self._supervisor.match.max_results
+        )
         async with self._work_lock:
             before = removesuffix(context.line_before, suffix=context.syms_before)
             linewise = not before or before.isspace()
@@ -88,7 +94,7 @@ class Worker(BaseWorker[RegistersClient, None]):
                 opts=self._supervisor.match,
                 word=context.words,
                 sym=context.syms,
-                limitless=context.manual,
+                limit=limit,
             )
             for word in words:
                 edit = (

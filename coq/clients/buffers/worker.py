@@ -13,6 +13,7 @@ from ...shared.executor import AsyncExecutor
 from ...shared.runtime import Supervisor
 from ...shared.runtime import Worker as BaseWorker
 from ...shared.settings import BuffersClient
+from ...shared.sql import BIGGEST_INT
 from ...shared.types import Completion, Context, Doc, Edit
 from .db.database import BDB, BufferWord, Update
 
@@ -144,6 +145,12 @@ class Worker(BaseWorker[BuffersClient, None]):
         await self._ex.submit(cont())
 
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
+        limit = (
+            BIGGEST_INT
+            if context.manual
+            else self._options.max_pulls or self._supervisor.match.max_results
+        )
+
         async with self._work_lock:
             filetype = context.filetype if self._options.same_filetype else None
             update = (
@@ -163,7 +170,7 @@ class Worker(BaseWorker[BuffersClient, None]):
                 filetype=filetype,
                 word=context.words,
                 sym=context.syms if self._options.match_syms else "",
-                limitless=context.manual,
+                limit=limit,
                 update=update,
             )
             for word in words:

@@ -5,7 +5,7 @@ from typing import Iterable, Iterator, Mapping
 from ....consts import TREESITTER_DB
 from ....databases.types import DB
 from ....shared.settings import MatchOptions
-from ....shared.sql import BIGGEST_INT, init_db, like_esc
+from ....shared.sql import init_db, like_esc
 from ....treesitter.types import Payload, SimplePayload
 from .sql import sql
 
@@ -96,7 +96,7 @@ class TDB(DB):
         filetype: str,
         word: str,
         sym: str,
-        limitless: int,
+        limit: int,
     ) -> Iterator[Payload]:
         with suppress(OperationalError):
             with self._conn, closing(self._conn.cursor()) as cursor:
@@ -105,7 +105,7 @@ class TDB(DB):
                     {
                         "cut_off": opts.fuzzy_cutoff,
                         "look_ahead": opts.look_ahead,
-                        "limit": BIGGEST_INT if limitless else opts.max_results,
+                        "limit": limit,
                         "filetype": filetype,
                         "word": word,
                         "sym": sym,

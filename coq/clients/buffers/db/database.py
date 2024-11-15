@@ -194,7 +194,7 @@ class BDB(DB):
         filetype: Optional[str],
         word: str,
         sym: str,
-        limitless: int,
+        limit: int,
         update: Optional[Update],
     ) -> Iterator[BufferWord]:
         with suppress(OperationalError):
@@ -218,7 +218,7 @@ class BDB(DB):
                     {
                         "cut_off": opts.fuzzy_cutoff,
                         "look_ahead": opts.look_ahead,
-                        "limit": BIGGEST_INT if limitless else opts.max_results,
+                        "limit": limit,
                         "filetype": filetype,
                         "word": word,
                         "sym": sym,

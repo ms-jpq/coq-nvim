@@ -7,7 +7,7 @@ from ....consts import TMUX_DB
 from ....databases.types import DB
 from ....shared.parse import tokenize
 from ....shared.settings import MatchOptions
-from ....shared.sql import BIGGEST_INT, init_db, like_esc
+from ....shared.sql import init_db, like_esc
 from ....tmux.parse import Pane
 from .sql import sql
 
@@ -99,7 +99,7 @@ class TMDB(DB):
                 cursor.execute("PRAGMA optimize", ())
 
     def select(
-        self, opts: MatchOptions, word: str, sym: str, limitless: int
+        self, opts: MatchOptions, word: str, sym: str, limit: int
     ) -> Iterator[TmuxWord]:
         with suppress(OperationalError):
             with self._conn, closing(self._conn.cursor()) as cursor:
@@ -108,7 +108,7 @@ class TMDB(DB):
                     {
                         "cut_off": opts.fuzzy_cutoff,
                         "look_ahead": opts.look_ahead,
-                        "limit": BIGGEST_INT if limitless else opts.max_results,
+                        "limit": limit,
                         "pane_id": self._current.uid if self._current else None,
                         "word": word,
                         "sym": sym,

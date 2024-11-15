@@ -33,6 +33,7 @@ from ...shared.executor import AsyncExecutor, very_nice
 from ...shared.runtime import Supervisor
 from ...shared.runtime import Worker as BaseWorker
 from ...shared.settings import T9Client
+from ...shared.sql import BIGGEST_INT
 from ...shared.types import Completion, Context, ContextualEdit, Doc
 from .install import ensure_updated, t9_bin, x_ok
 from .types import ReqL1, ReqL2, Request, RespL1, Response
@@ -266,6 +267,12 @@ class Worker(BaseWorker[T9Client, None]):
             return await shield(cont())
 
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
+        limit = (
+            BIGGEST_INT
+            if context.manual
+            else self._options.max_pulls or self._supervisor.match.max_results
+        )
+
         if self._t9_locked:
             self._t9_locked = False
             return
@@ -276,11 +283,7 @@ class Worker(BaseWorker[T9Client, None]):
 
             if self._bin:
                 id = next(self._count)
-                req = _encode(
-                    context,
-                    id=id,
-                    limit=self._supervisor.match.max_results,
-                )
+                req = _encode(context, id=id, limit=limit)
                 json = dumps(req, check_circular=False, ensure_ascii=False)
                 if reply := await self._comm(context.cwd, json=json):
                     try:

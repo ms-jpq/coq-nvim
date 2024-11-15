@@ -239,7 +239,9 @@ class Worker(BaseWorker[PathsClient, None]):
             base_paths = {*cont()}
 
             limit = (
-                BIGGEST_INT if context.manual else self._supervisor.match.max_results
+                BIGGEST_INT
+                if context.manual
+                else self._options.max_pulls or self._supervisor.match.max_results
             )
             aw = tuple(
                 _parse(

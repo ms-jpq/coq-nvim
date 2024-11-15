@@ -4,8 +4,10 @@ auto_start: False
 clients:
   buffers:
     always_on_top: False
+    always_wait: false
     enabled: True
     match_syms: False
+    max_pulls: null
     parent_scope: " ⇊"
     same_filetype: False
     short_name: "BF"
@@ -13,21 +15,27 @@ clients:
 
   lsp:
     always_on_top: null
+    always_wait: false
     enabled: True
+    max_pulls: 88
     resolve_timeout: 0.06
     short_name: "LS"
     weight_adjust: 0.5
 
   lsp_inline:
     always_on_top: []
+    always_wait: false
     enabled: True
+    max_pulls: null
     resolve_timeout: 0.06
     short_name: "IS"
     weight_adjust: 1
 
   paths:
     always_on_top: False
+    always_wait: false
     enabled: True
+    max_pulls: null
     path_seps: []
     preview_lines: 6
     resolution:
@@ -38,9 +46,11 @@ clients:
 
   registers:
     always_on_top: False
+    always_wait: false
     enabled: True
     lines: []
     match_syms: False
+    max_pulls: null
     max_yank_size: 8888
     register_scope: " ⇉ "
     short_name: "RS"
@@ -49,7 +59,9 @@ clients:
 
   snippets:
     always_on_top: False
+    always_wait: false
     enabled: True
+    max_pulls: null
     short_name: "SP"
     user_path: null
     warn:
@@ -59,13 +71,17 @@ clients:
 
   tabnine:
     always_on_top: False
+    always_wait: false
     enabled: False
+    max_pulls: null
     short_name: "T9"
     weight_adjust: -0.1
 
   tags:
     always_on_top: False
+    always_wait: false
     enabled: True
+    max_pulls: null
     parent_scope: " ⇊"
     path_sep: " ⇉ "
     short_name: "TG"
@@ -73,21 +89,27 @@ clients:
 
   third_party:
     always_on_top: null
+    always_wait: false
     enabled: True
+    max_pulls: null
     short_name: "3P"
     weight_adjust: 0
 
   third_party_inline:
     always_on_top: []
+    always_wait: false
     enabled: True
+    max_pulls: null
     short_name: "3L"
     weight_adjust: 0
 
   tmux:
     all_sessions: True
     always_on_top: False
+    always_wait: false
     enabled: True
     match_syms: False
+    max_pulls: null
     parent_scope: " ⇊"
     path_sep: " ⇉ "
     short_name: "TX"
@@ -95,7 +117,9 @@ clients:
 
   tree_sitter:
     always_on_top: False
+    always_wait: false
     enabled: True
+    max_pulls: null
     path_sep: " ⇊"
     short_name: "TS"
     slow_threshold: 0.168

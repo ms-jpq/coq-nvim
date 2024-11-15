@@ -96,7 +96,7 @@ class SDB(DB):
             cursor.execute("PRAGMA optimize", ())
 
     def select(
-        self, opts: MatchOptions, filetype: str, word: str, sym: str, limitless: int
+        self, opts: MatchOptions, filetype: str, word: str, sym: str, limit: int
     ) -> Iterator[_Snip]:
         with suppress(OperationalError):
             with self._conn, closing(self._conn.cursor()) as cursor:
@@ -105,7 +105,7 @@ class SDB(DB):
                     {
                         "cut_off": opts.fuzzy_cutoff,
                         "look_ahead": opts.look_ahead,
-                        "limit": BIGGEST_INT if limitless else opts.max_results,
+                        "limit": limit,
                         "filetype": filetype,
                         "word": word,
                         "sym": sym,

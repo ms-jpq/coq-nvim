@@ -9,7 +9,7 @@ from pynvim_pp.lib import encode
 
 from ....databases.types import DB
 from ....shared.settings import MatchOptions
-from ....shared.sql import BIGGEST_INT, init_db, like_esc
+from ....shared.sql import init_db, like_esc
 from ....tags.types import Tag, Tags
 from .sql import sql
 
@@ -90,7 +90,7 @@ class CTDB(DB):
         line_num: int,
         word: str,
         sym: str,
-        limitless: int,
+        limit: int,
     ) -> Iterator[Tag]:
         with suppress(OperationalError):
             with self._conn, closing(self._conn.cursor()) as cursor:
@@ -99,7 +99,7 @@ class CTDB(DB):
                     {
                         "cut_off": opts.fuzzy_cutoff,
                         "look_ahead": opts.look_ahead,
-                        "limit": BIGGEST_INT if limitless else opts.max_results,
+                        "limit": limit,
                         "filename": filename,
                         "line_num": line_num,
                         "word": word,

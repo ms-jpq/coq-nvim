@@ -128,7 +128,8 @@ class Worker(BaseWorker[LSPClient, None]):
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
         async with self._work_lock, self._working:
             try:
-                limit = BIGGEST_INT if context.manual else self._max_results
+                # TODO: extract this into an option
+                limit = BIGGEST_INT if context.manual else self._max_results * 6
 
                 use_cache, cached_clients, cached = self._cache.apply_cache(
                     context, always=False

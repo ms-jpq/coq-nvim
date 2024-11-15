@@ -28,7 +28,12 @@ def _doc(client: TmuxClient, word: TmuxWord) -> Doc:
 
 class Worker(BaseWorker[TmuxClient, Path]):
     def __init__(
-        self, ex: AsyncExecutor, supervisor: Supervisor, options: TmuxClient, misc: Path
+        self,
+        ex: AsyncExecutor,
+        supervisor: Supervisor,
+        always_wait: bool,
+        options: TmuxClient,
+        misc: Path,
     ) -> None:
         self._exec = misc
         self._lock = Lock()
@@ -37,7 +42,13 @@ class Worker(BaseWorker[TmuxClient, Path]):
             unifying_chars=supervisor.match.unifying_chars,
             include_syms=options.match_syms,
         )
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
         self._ex.run(self._poll())
 
     def interrupt(self) -> None:

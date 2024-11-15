@@ -16,11 +16,18 @@ class Worker(BaseWorker[SnippetClient, Path]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: SnippetClient,
         misc: Path,
     ) -> None:
         self._db = SDB(misc)
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
 
     def interrupt(self) -> None:
         with self._interrupt():

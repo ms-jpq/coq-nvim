@@ -136,12 +136,19 @@ class Worker(BaseWorker[TagsClient, Tuple[Path, Path, PurePath]]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: TagsClient,
         misc: Tuple[Path, Path, PurePath],
     ) -> None:
         self._exec, vars_dir, cwd = misc
         self._db = CTDB(vars_dir, cwd=cwd)
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
         self._ex.run(self._poll())
 
     def interrupt(self) -> None:

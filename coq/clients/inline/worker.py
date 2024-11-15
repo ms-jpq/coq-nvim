@@ -22,10 +22,17 @@ class Worker(BaseWorker[LSPClient, None]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: LSPClient,
         misc: None,
     ) -> None:
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
         self._cache = CacheWorker(supervisor)
         self._ex.run(self._poll())
 

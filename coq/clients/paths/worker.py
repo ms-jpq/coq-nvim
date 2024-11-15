@@ -215,10 +215,17 @@ class Worker(BaseWorker[PathsClient, None]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: PathsClient,
         misc: None,
     ) -> None:
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
         seps = {sep, altsep} if altsep else {sep}
         self._seps = {sep for sep in options.path_seps if sep in seps} or seps
 

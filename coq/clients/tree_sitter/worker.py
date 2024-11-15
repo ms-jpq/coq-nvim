@@ -104,12 +104,19 @@ class Worker(BaseWorker[TSClient, None]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: TSClient,
         misc: None,
     ) -> None:
         self._lock = Lock()
         self._db = TDB()
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
         self._ex.run(self._poll())
 
     def interrupt(self) -> None:

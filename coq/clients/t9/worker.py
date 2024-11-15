@@ -183,6 +183,7 @@ class Worker(BaseWorker[T9Client, None]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: T9Client,
         misc: None,
     ) -> None:
@@ -192,7 +193,13 @@ class Worker(BaseWorker[T9Client, None]):
         self._cwd: Optional[PurePath] = None
         self._count = count()
         self._t9_locked = False
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
         self._ex.run(gather(self._install(), self._poll()))
 
     def interrupt(self) -> None:

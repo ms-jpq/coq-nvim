@@ -86,7 +86,7 @@ class RDB(DB):
         opts: MatchOptions,
         word: str,
         sym: str,
-        limit,
+        limit: int,
     ) -> Iterator[RegWord]:
         def fetch(
             cursor: Cursor, match_syms: bool, stmt: str, linewise: bool

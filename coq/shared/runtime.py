@@ -145,16 +145,22 @@ class Supervisor:
                     acc: Deque[Metric] = deque()
 
                     token = self._reviewer.begin(context)
-                    tasks = tuple(
-                        worker.supervised(context, token=token, now=now, acc=acc)
+                    tasks = {
+                        worker.supervised(
+                            context, token=token, now=now, acc=acc
+                        ): worker._options.always_wait
                         for worker in self._workers
-                    )
+                    }
+                    waiting = sum(tasks.values())
 
-                    _, pending = await wait(tasks, timeout=timeout)
+                    done, pending = await wait(tuple(tasks), timeout=timeout)
+                    for fut in done:
+                        waiting -= tasks.get(fut) or 0
                     if not acc:
                         for fut in as_completed(pending):
                             await fut
-                            if acc:
+                            waiting -= tasks.get(fut) or 0
+                            if acc and not waiting:
                                 break
 
                     await cancel(*pending)
@@ -167,11 +173,17 @@ class Supervisor:
 class Worker(Interruptible, Generic[_O_co, _T_co]):
     @classmethod
     def init(
-        cls, supervisor: Supervisor, options: _O_co, misc: _T_co
+        cls, supervisor: Supervisor, always_wait: bool, options: _O_co, misc: _T_co
     ) -> Worker[_O_co, _T_co]:
         ex = AsyncExecutor(supervisor.threadpool)
         fut = ex.fsubmit(
-            lambda: cls(ex, supervisor=supervisor, options=options, misc=misc)
+            lambda: cls(
+                ex,
+                supervisor=supervisor,
+                always_wait=always_wait,
+                options=options,
+                misc=misc,
+            )
         )
         self: Worker[_O_co, _T_co] = fut.result()
         return self
@@ -180,12 +192,14 @@ class Worker(Interruptible, Generic[_O_co, _T_co]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: _O_co,
         misc: _T_co,
     ) -> None:
         self._ex = ex
         self._work_lock = TracingLocker(name=options.short_name, force=True)
         self._supervisor, self._options = supervisor, options
+        self.always_wait = always_wait
         self._work_fut: Optional[CFuture] = None
         self._idle = Condition()
         self._interrupt_lock = Lock()

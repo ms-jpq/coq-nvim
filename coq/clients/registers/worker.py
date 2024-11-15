@@ -27,6 +27,7 @@ class Worker(BaseWorker[RegistersClient, None]):
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
+        always_wait: bool,
         options: RegistersClient,
         misc: None,
     ) -> None:
@@ -36,7 +37,13 @@ class Worker(BaseWorker[RegistersClient, None]):
             unifying_chars=supervisor.match.unifying_chars,
             include_syms=options.match_syms,
         )
-        super().__init__(ex, supervisor=supervisor, options=options, misc=misc)
+        super().__init__(
+            ex,
+            supervisor=supervisor,
+            always_wait=always_wait,
+            options=options,
+            misc=misc,
+        )
         self._ex.run(self._poll())
 
     def interrupt(self) -> None:

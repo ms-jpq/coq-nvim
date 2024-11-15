@@ -65,48 +65,100 @@ def _from_each_according_to_their_ability(
     clients = settings.clients
 
     if clients.buffers.enabled:
-        yield BuffersWorker.init(supervisor, options=clients.buffers, misc=None)
+        yield BuffersWorker.init(
+            supervisor,
+            always_wait=clients.buffers.always_wait,
+            options=clients.buffers,
+            misc=None,
+        )
 
     if clients.paths.enabled:
-        yield PathsWorker.init(supervisor, options=clients.paths, misc=None)
+        yield PathsWorker.init(
+            supervisor,
+            always_wait=clients.paths.always_wait,
+            options=clients.paths,
+            misc=None,
+        )
 
     if clients.tree_sitter.enabled:
-        yield TreeWorker.init(supervisor, options=clients.tree_sitter, misc=None)
+        yield TreeWorker.init(
+            supervisor,
+            always_wait=clients.tree_sitter.always_wait,
+            options=clients.tree_sitter,
+            misc=None,
+        )
 
     if clients.lsp.enabled:
-        yield LspWorker.init(supervisor, options=clients.lsp, misc=None)
+        yield LspWorker.init(
+            supervisor,
+            always_wait=clients.lsp.always_wait,
+            options=clients.lsp,
+            misc=None,
+        )
 
     if clients.lsp_inline.enabled:
-        yield InLineWorker.init(supervisor, options=clients.lsp_inline, misc=None)
+        yield InLineWorker.init(
+            supervisor,
+            always_wait=clients.lsp_inline.always_wait,
+            options=clients.lsp_inline,
+            misc=None,
+        )
 
     if clients.registers.enabled:
-        yield RegistersWorker.init(supervisor, options=clients.registers, misc=None)
+        yield RegistersWorker.init(
+            supervisor,
+            always_wait=clients.registers.always_wait,
+            options=clients.registers,
+            misc=None,
+        )
 
     if clients.third_party.enabled:
         yield ThirdPartyWorker.init(
-            supervisor, options=cast(LSPClient, clients.third_party), misc=None
+            supervisor,
+            always_wait=clients.third_party.always_wait,
+            options=cast(LSPClient, clients.third_party),
+            misc=None,
         )
 
     if clients.third_party_inline.enabled:
         yield InLineThirdPartyWorker.init(
             supervisor,
+            always_wait=clients.third_party_inline.always_wait,
             options=cast(LSPClient, clients.third_party_inline),
             misc=None,
         )
 
     if clients.snippets.enabled:
-        yield SnippetWorker.init(supervisor, options=clients.snippets, misc=vars_dir)
+        yield SnippetWorker.init(
+            supervisor,
+            always_wait=clients.snippets.always_wait,
+            options=clients.snippets,
+            misc=vars_dir,
+        )
 
     if clients.tags.enabled and (ctags := which("ctags")):
         yield TagsWorker.init(
-            supervisor, options=clients.tags, misc=(Path(ctags), vars_dir, cwd)
+            supervisor,
+            always_wait=clients.tags.always_wait,
+            options=clients.tags,
+            misc=(Path(ctags), vars_dir, cwd),
         )
 
     if clients.tmux.enabled and (tmux := which("tmux")):
-        yield TmuxWorker.init(supervisor, options=clients.tmux, misc=Path(tmux))
+        yield TmuxWorker.init(
+            supervisor,
+            always_wait=clients.tmux.always_wait,
+            options=clients.tmux,
+            misc=Path(tmux),
+        )
 
     if clients.tabnine.enabled:
-        yield T9Worker.init(supervisor, options=clients.tabnine, misc=None)
+        yield T9Worker.init(
+            supervisor,
+            always_wait=clients.tabnine.always_wait,
+            options=clients.tabnine,
+            misc=None,
+        )
 
 
 async def stack(th: ThreadPoolExecutor) -> Stack:

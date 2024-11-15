@@ -17,10 +17,10 @@ clients:
     always_on_top: null
     always_wait: false
     enabled: True
-    max_pulls: 88
+    max_pulls: 188
     resolve_timeout: 0.06
     short_name: "LS"
-    weight_adjust: 0.5
+    weight_adjust: 0.75
 
   lsp_inline:
     always_on_top: []

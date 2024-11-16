@@ -34,7 +34,7 @@ def _shift(cursor: Cursors, edit: BaseRangeEdit) -> Tuple[WTF8Pos, WTF8Pos]:
     diff = col - edit_col
 
     if b_row == row:
-        if b_col > edit_col and diff < 0:
+        if b_col > edit_col and diff < -1:
             new_b_col = b_col + diff
         else:
             new_b_col = b_col

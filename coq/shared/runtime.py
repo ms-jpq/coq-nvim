@@ -156,7 +156,7 @@ class Supervisor:
                     done, pending = await wait(tuple(tasks), timeout=timeout)
                     for fut in done:
                         waiting -= tasks.get(fut) or 0
-                    if not acc:
+                    if not acc or waiting:
                         for fut in as_completed(pending):
                             await fut
                             waiting -= tasks.get(fut) or 0

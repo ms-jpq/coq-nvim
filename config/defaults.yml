@@ -15,7 +15,7 @@ clients:
 
   lsp:
     always_on_top: null
-    always_wait: false
+    always_wait: true
     enabled: True
     max_pulls: 188
     resolve_timeout: 0.06

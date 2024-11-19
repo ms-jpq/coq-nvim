@@ -1,4 +1,5 @@
 from asyncio import create_task
+from contextlib import suppress
 from dataclasses import dataclass, replace
 from functools import lru_cache
 from html import unescape
@@ -15,6 +16,7 @@ from pynvim_pp.lib import display_width, encode
 from pynvim_pp.logging import suppress_and_log
 from pynvim_pp.nvim import Nvim
 from pynvim_pp.preview import buf_set_preview, set_preview
+from pynvim_pp.rpc_types import NvimError
 from pynvim_pp.types import NoneType
 from pynvim_pp.window import Window
 from std2 import anext, clamp
@@ -204,11 +206,12 @@ async def _show_preview(stack: Stack, event: _Event, doc: Doc, s: State) -> None
             listed=False, scratch=True, wipe=True, nofile=True, noswap=True
         )
         await buf_set_preview(buf=buf, syntax=new_doc.syntax, preview=lines)
-        await Nvim.api.exec_lua(
-            NoneType,
-            f"{NAMESPACE}.treesitter_start(...)",
-            (buf, new_doc.syntax or "markdown"),
-        )
+        with suppress(NvimError):
+            await Nvim.api.exec_lua(
+                NoneType,
+                f"{NAMESPACE}.treesitter_start(...)",
+                (buf, new_doc.syntax or "markdown"),
+            )
         await _set_win(display=stack.settings.display.preview, buf=buf, pos=pos)
 
 

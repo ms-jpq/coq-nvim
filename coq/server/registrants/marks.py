@@ -190,8 +190,9 @@ async def nav_mark(stack: Stack) -> None:
 
         async def single() -> None:
             mark_applied_notify = stack.settings.display.mark_applied_notify
-            await _single_mark(mark_applied_notify, s,
-                               mark=mark, marks=marks, ns=ns, win=win, buf=buf)
+            await _single_mark(
+                mark_applied_notify, s, mark=mark, marks=marks, ns=ns, win=win, buf=buf
+            )
 
         if linked := tuple(m for m in marks if m.marker == mark.marker):
             edited = await _linked_marks(

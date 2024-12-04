@@ -27,7 +27,7 @@ from ..consts import CONFIG_YML, SETTINGS_VAR, VARS
 from ..databases.insertions.database import IDB
 from ..shared.lru import LRU
 from ..shared.runtime import Supervisor, Worker
-from ..shared.settings import LSPClient, Settings
+from ..shared.settings import LSPClient, LSPInlineClient, Settings
 from .reviewer import Reviewer
 from .rt_types import Stack, ValidationError
 from .state import state
@@ -124,7 +124,7 @@ def _from_each_according_to_their_ability(
         yield InLineThirdPartyWorker.init(
             supervisor,
             always_wait=clients.third_party_inline.always_wait,
-            options=cast(LSPClient, clients.third_party_inline),
+            options=cast(LSPInlineClient, clients.third_party_inline),
             misc=None,
         )
 

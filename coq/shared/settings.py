@@ -205,7 +205,17 @@ class LSPClient(BaseClient, _AlwaysTops):
 
 
 @dataclass(frozen=True)
+class LSPInlineClient(LSPClient):
+    live_pulling: bool
+
+
+@dataclass(frozen=True)
 class ThirdPartyClient(BaseClient, _AlwaysTops): ...
+
+
+@dataclass(frozen=True)
+class ThirdPartyInlineClient(ThirdPartyClient):
+    live_pulling: bool
 
 
 _NamedRegisters = Literal[
@@ -257,14 +267,14 @@ class ExecClient(_WordbankClient, _AlwaysTop):
 class Clients:
     buffers: BuffersClient
     lsp: LSPClient
-    lsp_inline: LSPClient
+    lsp_inline: LSPInlineClient
     paths: PathsClient
     registers: RegistersClient
     snippets: SnippetClient
     tabnine: T9Client
     tags: TagsClient
     third_party: ThirdPartyClient
-    third_party_inline: ThirdPartyClient
+    third_party_inline: ThirdPartyInlineClient
     tmux: TmuxClient
     tree_sitter: TSClient
 

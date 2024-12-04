@@ -11,19 +11,19 @@ from ...lsp.types import LSPcomp
 from ...shared.executor import AsyncExecutor
 from ...shared.runtime import Supervisor
 from ...shared.runtime import Worker as BaseWorker
-from ...shared.settings import LSPClient
+from ...shared.settings import LSPInlineClient
 from ...shared.timeit import timeit
 from ...shared.types import Completion, Context
 from ..cache.worker import CacheWorker
 
 
-class Worker(BaseWorker[LSPClient, None]):
+class Worker(BaseWorker[LSPInlineClient, None]):
     def __init__(
         self,
         ex: AsyncExecutor,
         supervisor: Supervisor,
         always_wait: bool,
-        options: LSPClient,
+        options: LSPInlineClient,
         misc: None,
     ) -> None:
         super().__init__(
@@ -75,15 +75,20 @@ class Worker(BaseWorker[LSPClient, None]):
                 return LSPcomp(client=None, local_cache=False, items=cached)
 
             async def lsp() -> Optional[LSPcomp]:
-                return await anext(lsp_stream, None)
+                return (
+                    await anext(lsp_stream, None)
+                    if self._options.live_pulling
+                    else None
+                )
 
             async def stream() -> AsyncIterator[LSPcomp]:
                 for co in as_completed((db(), lsp())):
                     if comps := await co:
                         yield comps
 
-                async for lsp_comps in lsp_stream:
-                    yield lsp_comps
+                if self._options.live_pulling:
+                    async for lsp_comps in lsp_stream:
+                        yield lsp_comps
 
             async for comp in stream():
                 for row in comp.items:

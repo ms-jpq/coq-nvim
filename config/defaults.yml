@@ -26,6 +26,7 @@ clients:
     always_on_top: []
     always_wait: false
     enabled: True
+    live_pulling: false
     max_pulls: null
     resolve_timeout: 0.06
     short_name: "IS"
@@ -99,6 +100,7 @@ clients:
     always_on_top: []
     always_wait: false
     enabled: True
+    live_pulling: true
     max_pulls: null
     short_name: "3L"
     weight_adjust: 0

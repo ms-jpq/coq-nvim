@@ -94,7 +94,6 @@ class Worker(BaseWorker[LSPClient, None]):
         self._local_cached = _LocalCache()
         self._working = Condition()
         self._max_results = self._supervisor.match.max_results
-        self._cached_clients: AbstractSet[str] = set()
         self._ex.run(self._poll())
 
     def interrupt(self) -> None:
@@ -131,9 +130,8 @@ class Worker(BaseWorker[LSPClient, None]):
                                         {client: chunked}, skip_db=False
                                     )
                         if context := self._supervisor.current_context:
-                            cached_clients = self._cached_clients
                             async for lsp_comps in self._request(
-                                context, cached_clients=cached_clients
+                                context, cached_clients=frozenset()
                             ):
                                 if not self._work_lock.locked():
                                     for chunked in batched(
@@ -157,7 +155,6 @@ class Worker(BaseWorker[LSPClient, None]):
                 use_cache, cached_clients, cached = self._cache.apply_cache(
                     context, always=False
                 )
-                self._cached_clients = cached_clients
                 if not use_cache:
                     self._local_cached.pre.clear()
                     self._local_cached.post.clear()

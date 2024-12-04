@@ -41,7 +41,7 @@ async def mark(settings: Settings, buf: Buffer, marks: Sequence[Mark]) -> None:
     try:
         await buf.set_extmarks(ns, extmarks=emarks)
     except NvimError:
-        log.warn("%s", f"bad mark locations {marks}")
+        log.warning("%s", f"bad mark locations {marks}")
     else:
         regions = _encode_for_display(" ".join(f"[{mark.text}]" for mark in marks))
         msg = LANG("added marks", regions=regions)

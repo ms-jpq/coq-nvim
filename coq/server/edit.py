@@ -632,7 +632,7 @@ async def edit(
     win = await Window.get_current()
     buf = await win.get_buf()
     if buf.number != state.context.buf_id:
-        log.warn("%s", "stale buffer")
+        log.warning("%s", "stale buffer")
         return None
     else:
         await reset_undolevels()
@@ -668,13 +668,13 @@ async def edit(
                     text=(inserted,),
                 )
             except NvimError as e:
-                log.warn("%s", e)
+                log.warning("%s", e)
 
         if movement is not None:
             try:
                 await win.set_cursor(row=n_row, col=n_col + movement)
             except NvimError as e:
-                log.warn("%s", e)
+                log.warning("%s", e)
 
         if new_marks := tuple(_shift_marks(m_shift, marks=parsed.marks)):
             await mark(settings=stack.settings, buf=buf, marks=new_marks)

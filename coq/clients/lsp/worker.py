@@ -133,13 +133,12 @@ class Worker(BaseWorker[LSPClient, None]):
                             async for lsp_comps in self._request(
                                 context, cached_clients=frozenset()
                             ):
-                                if not self._work_lock.locked():
-                                    for chunked in batched(
-                                        lsp_comps.items, n=CACHE_CHUNK
-                                    ):
+                                for chunked in batched(lsp_comps.items, n=CACHE_CHUNK):
+                                    if not self._work_lock.locked():
                                         self._cache.set_cache(
                                             {lsp_comps.client: chunked}, skip_db=False
                                         )
+                                        await sleep(0)
 
             await self._with_interrupt(cont())
 

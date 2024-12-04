@@ -29,7 +29,7 @@ clients:
     live_pulling: false
     max_pulls: null
     resolve_timeout: 0.06
-    short_name: "IS"
+    short_name: "IL"
     weight_adjust: 1
 
   paths:

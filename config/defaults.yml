@@ -200,7 +200,7 @@ display:
 
   pum:
     ellipsis: …
-    fast_close: True
+    fast_close: False
     kind_context:
       - " ["
       - "]"

@@ -1,8 +1,9 @@
-from asyncio import as_completed
+from asyncio import Condition, as_completed
 from typing import AsyncIterator, Optional
 
 from pynvim_pp.logging import suppress_and_log
 from std2 import anext
+from std2.aitertools import to_async
 from std2.itertools import batched
 
 from ...consts import CACHE_CHUNK
@@ -34,6 +35,7 @@ class Worker(BaseWorker[LSPInlineClient, None]):
             misc=misc,
         )
         self._cache = CacheWorker(supervisor)
+        self._working = Condition()
         self._ex.run(self._poll())
 
     def interrupt(self) -> None:
@@ -52,6 +54,8 @@ class Worker(BaseWorker[LSPInlineClient, None]):
 
     async def _poll(self) -> None:
         while True:
+            async with self._working:
+                await self._working.wait()
 
             async def cont() -> None:
                 if context := self._supervisor.current_context:
@@ -63,33 +67,33 @@ class Worker(BaseWorker[LSPInlineClient, None]):
                                 )
 
             await self._with_interrupt(cont())
-            async with self._idle:
-                await self._idle.wait()
 
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
-        async with self._work_lock:
-            _, _, cached = self._cache.apply_cache(context, always=True)
-            lsp_stream = self._request(context)
-
-            async def db() -> LSPcomp:
-                return LSPcomp(client=None, local_cache=False, items=cached)
-
-            async def lsp() -> Optional[LSPcomp]:
-                return (
-                    await anext(lsp_stream, None)
+        async with self._work_lock, self._working:
+            try:
+                _, _, cached = self._cache.apply_cache(context, always=True)
+                lsp_stream = (
+                    self._request(context)
                     if self._options.live_pulling
-                    else None
+                    else to_async(())
                 )
 
-            async def stream() -> AsyncIterator[LSPcomp]:
-                for co in as_completed((db(), lsp())):
-                    if comps := await co:
-                        yield comps
+                async def db() -> LSPcomp:
+                    return LSPcomp(client=None, local_cache=False, items=cached)
 
-                if self._options.live_pulling:
+                async def lsp() -> Optional[LSPcomp]:
+                    return await anext(lsp_stream, None)
+
+                async def stream() -> AsyncIterator[LSPcomp]:
+                    for co in as_completed((db(), lsp())):
+                        if comps := await co:
+                            yield comps
+
                     async for lsp_comps in lsp_stream:
                         yield lsp_comps
 
-            async for comp in stream():
-                for row in comp.items:
-                    yield row
+                async for comp in stream():
+                    for row in comp.items:
+                        yield row
+            finally:
+                self._working.notify_all()

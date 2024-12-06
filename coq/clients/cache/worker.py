@@ -38,6 +38,7 @@ class _CacheCtx:
     col: int
     syms_before: str
     words_before: str
+    ws_before: str
 
 
 def _use_cache(match: MatchOptions, cache: _CacheCtx, ctx: Context) -> bool:
@@ -47,7 +48,7 @@ def _use_cache(match: MatchOptions, cache: _CacheCtx, ctx: Context) -> bool:
         and cache.commit_id == ctx.commit_id
         and ctx.buf_id == cache.buf_id
         and row == cache.row
-        and bool(cache.words_before) == bool(ctx.words_before)
+        and (bool(cache.words_before) == bool(ctx.words_before) or bool(cache.ws_before))
         and multi_set_ratio(
             ctx.syms_before, cache.syms_before, look_ahead=match.look_ahead
         )
@@ -91,6 +92,7 @@ class CacheWorker(Interruptible):
             col=-1,
             syms_before="",
             words_before="",
+            ws_before=""
         )
         self._clients: MutableSet[str] = set()
         self._cached: MutableMapping[bytes, Completion] = {}
@@ -141,6 +143,7 @@ class CacheWorker(Interruptible):
             col=col,
             syms_before=context.syms_before,
             words_before=context.words_before,
+            ws_before=context.ws_before
         )
 
         use_cache = _use_cache(

@@ -14,6 +14,7 @@ from typing import (
 from pynvim_pp.logging import suppress_and_log
 from std2 import anext
 from std2.itertools import batched
+from typing_extensions import MutableSet
 
 from ...consts import CACHE_CHUNK
 from ...lsp.requests.completion import comp_lsp
@@ -196,9 +197,9 @@ class Worker(BaseWorker[LSPClient, None]):
                     async for lsp_comps in lsp_stream:
                         yield _Src.from_query, lsp_comps
 
-                seen = 0
+                seen: MutableSet[str] = set()
                 async for src, lsp_comps in stream():
-                    if seen >= limit:
+                    if len(seen) >= limit:
                         break
 
                     acc = self._local_cached.post.setdefault(lsp_comps.client, [])
@@ -207,8 +208,10 @@ class Worker(BaseWorker[LSPClient, None]):
                         self._local_cached.pre[lsp_comps.client] = lsp_comps.items
 
                     for comp in lsp_comps.items:
+                        if comp.primary_edit.new_text in seen:
+                            continue
                         if src is _Src.from_db:
-                            seen += 1
+                            seen.add(comp.primary_edit.new_text)
                             yield comp
                         else:
                             acc.append(comp)
@@ -218,7 +221,7 @@ class Worker(BaseWorker[LSPClient, None]):
                                 sort_by=comp.sort_by,
                                 comp=comp,
                             ):
-                                seen += 1
+                                seen.add(comp.primary_edit.new_text)
                                 yield comp
             finally:
                 self._working.notify_all()

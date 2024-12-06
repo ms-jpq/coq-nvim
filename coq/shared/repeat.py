@@ -18,7 +18,9 @@ from .types import (
 )
 
 
-def _shift(cursor: Cursors, edit: BaseRangeEdit) -> Tuple[WTF8Pos, WTF8Pos]:
+def _shift_or_reject(
+    cursor: Cursors, edit: BaseRangeEdit
+) -> Optional[Tuple[WTF8Pos, WTF8Pos]]:
     row, u8, u16, u32 = cursor
     if edit.encoding == UTF16:
         col = u16
@@ -30,6 +32,9 @@ def _shift(cursor: Cursors, edit: BaseRangeEdit) -> Tuple[WTF8Pos, WTF8Pos]:
         never(edit.encoding)
 
     (b_row, b_col), (e_row, e_col) = edit.begin, edit.end
+    if e_col < col:
+        return None
+
     edit_col = edit.cursor_pos
     diff = col - edit_col
 
@@ -53,7 +58,7 @@ def _shift(cursor: Cursors, edit: BaseRangeEdit) -> Tuple[WTF8Pos, WTF8Pos]:
     return new_begin, new_end
 
 
-def sanitize(inline_shift: bool, cursor: Cursors, edit: Edit) -> Optional[Edit]:
+def sanitize(cursor: Cursors, edit: Edit) -> Optional[Edit]:
     row, *_ = cursor
     if isinstance(edit, SnippetRangeEdit):
         if row == -1:
@@ -67,17 +72,17 @@ def sanitize(inline_shift: bool, cursor: Cursors, edit: Edit) -> Optional[Edit]:
             return SnippetEdit(grammar=edit.grammar, new_text=fallback)
         elif not requires_snip(edit.new_text):
             return Edit(new_text=edit.new_text)
+        elif shift := _shift_or_reject(cursor, edit=edit):
+            begin, end = shift
+            return replace(edit, begin=begin, end=end)
         else:
-            begin, end = _shift(cursor, edit=edit)
-            return replace(edit, begin=begin, end=end)
+            return None
     elif isinstance(edit, RangeEdit):
-        if inline_shift:
-            begin, end = _shift(cursor, edit=edit)
-            return replace(edit, begin=begin, end=end)
-        elif fallback := edit.fallback:
+        if fallback := edit.fallback:
             return Edit(new_text=fallback)
-        elif not requires_snip(edit.new_text):
-            return Edit(new_text=edit.new_text)
+        elif shift := _shift_or_reject(cursor, edit=edit):
+            begin, end = shift
+            return replace(edit, begin=begin, end=end)
         else:
             return None
     elif isinstance(edit, SnippetEdit):

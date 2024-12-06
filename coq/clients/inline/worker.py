@@ -71,7 +71,7 @@ class Worker(BaseWorker[LSPInlineClient, None]):
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
         async with self._work_lock, self._working:
             try:
-                _, _, cached = self._cache.apply_cache(context, always=True, inline_shift=True)
+                _, _, cached = self._cache.apply_cache(context, always=True)
                 lsp_stream = (
                     self._request(context)
                     if self._options.live_pulling

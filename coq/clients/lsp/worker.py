@@ -100,16 +100,14 @@ class Worker(BaseWorker[LSPClient, None]):
         with self._interrupt():
             self._cache.interrupt()
 
-    def _request(
-        self, context: Context, cached_clients: AbstractSet[str]
-    ) -> AsyncIterator[LSPcomp]:
+    def _request(self, context: Context) -> AsyncIterator[LSPcomp]:
         return comp_lsp(
             short_name=self._options.short_name,
             always_on_top=self._options.always_on_top,
             weight_adjust=self._options.weight_adjust,
             context=context,
             chunk=self._max_results,
-            clients=set() if context.manual else cached_clients,
+            clients=set(),
         )
 
     async def _poll(self) -> None:
@@ -130,9 +128,7 @@ class Worker(BaseWorker[LSPClient, None]):
                                         {client: chunked}, skip_db=False
                                     )
                         if context := self._supervisor.current_context:
-                            async for lsp_comps in self._request(
-                                context, cached_clients=frozenset()
-                            ):
+                            async for lsp_comps in self._request(context):
                                 for chunked in batched(lsp_comps.items, n=CACHE_CHUNK):
                                     if not self._work_lock.locked():
                                         self._cache.set_cache(
@@ -159,7 +155,7 @@ class Worker(BaseWorker[LSPClient, None]):
                     self._local_cached.pre.clear()
                     self._local_cached.post.clear()
 
-                lsp_stream = self._request(context, cached_clients=cached_clients)
+                lsp_stream = self._request(context)
 
                 async def db() -> Tuple[_Src, LSPcomp]:
                     return _Src.from_db, LSPcomp(

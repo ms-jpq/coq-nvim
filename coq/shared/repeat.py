@@ -53,7 +53,7 @@ def _shift(cursor: Cursors, edit: BaseRangeEdit) -> Tuple[WTF8Pos, WTF8Pos]:
     return new_begin, new_end
 
 
-def sanitize(cursor: Cursors, edit: Edit) -> Optional[Edit]:
+def sanitize(inline_shift: bool, cursor: Cursors, edit: Edit) -> Optional[Edit]:
     row, *_ = cursor
     if isinstance(edit, SnippetRangeEdit):
         if row == -1:
@@ -71,7 +71,10 @@ def sanitize(cursor: Cursors, edit: Edit) -> Optional[Edit]:
             begin, end = _shift(cursor, edit=edit)
             return replace(edit, begin=begin, end=end)
     elif isinstance(edit, RangeEdit):
-        if fallback := edit.fallback:
+        if inline_shift:
+            begin, end = _shift(cursor, edit=edit)
+            return replace(edit, begin=begin, end=end)
+        elif fallback := edit.fallback:
             return Edit(new_text=fallback)
         elif not requires_snip(edit.new_text):
             return Edit(new_text=edit.new_text)

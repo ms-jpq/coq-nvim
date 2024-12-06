@@ -143,6 +143,7 @@ class Worker(BaseWorker[LSPClient, None]):
             await self._with_interrupt(cont())
 
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
+        inline_shift = False
         limit = (
             BIGGEST_INT
             if context.manual
@@ -152,7 +153,7 @@ class Worker(BaseWorker[LSPClient, None]):
         async with self._work_lock, self._working:
             try:
                 use_cache, cached_clients, cached = self._cache.apply_cache(
-                    context, always=False
+                    context, always=False, inline_shift=inline_shift
                 )
                 if not use_cache:
                     self._local_cached.pre.clear()
@@ -181,7 +182,10 @@ class Worker(BaseWorker[LSPClient, None]):
                             for item in cached_items
                             if (
                                 cached := sanitize_cached(
-                                    context.cursor, comp=item, sort_by=None
+                                    inline_shift=inline_shift,
+                                    cursor=context.cursor,
+                                    comp=item,
+                                    sort_by=None,
                                 )
                             )
                         )

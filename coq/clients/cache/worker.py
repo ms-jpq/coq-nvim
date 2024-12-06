@@ -60,9 +60,9 @@ def _overlap(row: int, edit: BaseRangeEdit) -> bool:
 
 
 def sanitize_cached(
-    cursor: Cursors, comp: Completion, sort_by: Optional[str]
+    inline_shift: bool, cursor: Cursors, comp: Completion, sort_by: Optional[str]
 ) -> Optional[Completion]:
-    if edit := sanitize(cursor, edit=comp.primary_edit):
+    if edit := sanitize(inline_shift, cursor, edit=comp.primary_edit):
         row, *_ = cursor
         cached = replace(
             comp,
@@ -126,7 +126,7 @@ class CacheWorker(Interruptible):
         self._cached.update(new_comps)
 
     def apply_cache(
-        self, context: Context, always: bool
+        self, context: Context, always: bool, inline_shift: bool
     ) -> Tuple[bool, AbstractSet[str], Iterator[Completion]]:
         cache_ctx = self._cache_ctx
         row, col = context.position
@@ -165,9 +165,7 @@ class CacheWorker(Interruptible):
                 for key, sort_by in selected:
                     if (comp := self._cached.get(key)) and (
                         cached := sanitize_cached(
-                            cursor=context.cursor,
-                            comp=comp,
-                            sort_by=sort_by,
+                            inline_shift, cursor=context.cursor, comp=comp, sort_by=sort_by
                         )
                     ):
                         if (

@@ -15,7 +15,7 @@ clients:
 
   lsp:
     always_on_top: null
-    always_wait: true
+    always_wait: false
     enabled: True
     max_pulls: 188
     resolve_timeout: 0.06
@@ -231,7 +231,7 @@ keymap:
   repeat: null
 
 limits:
-  completion_auto_timeout: 0.266
+  completion_auto_timeout: 0.166
   completion_manual_timeout: 1.966
 
   download_retries: 6

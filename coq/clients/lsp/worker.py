@@ -2,11 +2,11 @@ from asyncio import Condition, as_completed, sleep
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import (
-    AbstractSet,
     AsyncIterator,
     Iterator,
     MutableMapping,
     MutableSequence,
+    MutableSet,
     Optional,
     Tuple,
 )
@@ -14,7 +14,6 @@ from typing import (
 from pynvim_pp.logging import suppress_and_log
 from std2 import anext
 from std2.itertools import batched
-from typing_extensions import MutableSet
 
 from ...consts import CACHE_CHUNK
 from ...lsp.requests.completion import comp_lsp

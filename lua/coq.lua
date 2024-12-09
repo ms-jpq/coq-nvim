@@ -125,8 +125,7 @@ local set_coq_call = function(cmd)
   coq[cmd] = function(...)
     local args = {...}
 
-    local srv = is_win and {"localhost:0"} or {}
-    local server = vim.fn.serverstart(unpack(srv))
+    local server = vim.fn.serverstart("localhost:0")
 
     if not job_id then
       job_id =

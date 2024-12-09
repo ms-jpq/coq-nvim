@@ -221,9 +221,9 @@ display:
     helo: True
 
 keymap:
-  bigger_preview: <c-k>
+  # bigger_preview: <c-k>
   eval_snips: null
-  jump_to_mark: <c-h>
+  jump_to_mark: <c-m>
   manual_complete: <c-space>
   manual_complete_insertion_only: False
   pre_select: False

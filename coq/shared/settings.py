@@ -120,7 +120,7 @@ class KeyMapping:
     manual_complete: Optional[str]
     repeat: Optional[str]
     jump_to_mark: Optional[str]
-    bigger_preview: Optional[str]
+    # bigger_preview: Optional[str]
     eval_snips: Optional[str]
     manual_complete_insertion_only: Optional[bool]
 

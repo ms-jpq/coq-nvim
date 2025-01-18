@@ -1,6 +1,18 @@
 COQ = COQ or {}
 coq = coq or {}
 
+coq.validate = (function()
+  if not vim.fn.has("nvim-0.11") then
+    return vim.validate
+  else
+    return function(spec)
+      for name, args in pairs(spec) do
+        vim.validate(name, unpack(args))
+      end
+    end
+  end
+end)()
+
 local is_win = vim.fn.has("win32") == 1
 local linesep = "\n"
 local POLLING_RATE = 10

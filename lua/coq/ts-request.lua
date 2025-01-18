@@ -1,6 +1,6 @@
 (function(...)
   COQ.treesitter_start = function(buf, syntax)
-    vim.validate {buf = {buf, "number"}, syntax = {syntax, "string"}}
+    coq.validate {buf = {buf, "number"}, syntax = {syntax, "string"}}
     if vim.treesitter and vim.treesitter.start and vim.treesitter.language then
       local lang = vim.treesitter.language.get_lang(syntax)
       if lang then

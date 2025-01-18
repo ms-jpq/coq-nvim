@@ -1,6 +1,6 @@
 (function(...)
   local make_filter = function(include_clients, client_names)
-    vim.validate {
+    coq.validate {
       include_clients = {include_clients, "boolean"},
       client_names = {client_names, "table"}
     }
@@ -12,12 +12,12 @@
     else
       local acc = {}
       for _, client_name in ipairs(client_names) do
-        vim.validate {client_name = {client_name, "string"}}
+        coq.validate {client_name = {client_name, "string"}}
         acc[client_name] = true
       end
 
       return function(client_name)
-        vim.validate {client_name = {client_name, "string"}}
+        coq.validate {client_name = {client_name, "string"}}
         local includes = acc[client_name]
         local yes = (function()
           if include_clients then
@@ -35,7 +35,7 @@
   local accs = {}
 
   COQ.lsp_pull = function(client, name, uid, lo, hi)
-    vim.validate {
+    coq.validate {
       name = {name, "string"},
       uid = {uid, "number"},
       lo = {lo, "number"},
@@ -61,13 +61,13 @@
   end
 
   local lsp_notify = function(payload)
-    vim.validate {payload = {payload, "table"}}
+    coq.validate {payload = {payload, "table"}}
     local client = payload.client
     local multipart = tonumber(payload.multipart)
     local name = payload.name
     local reply = payload.reply
     local uid = payload.uid
-    vim.validate {
+    coq.validate {
       multipart = {multipart, "number", true},
       name = {name, "string"},
       uid = {uid, "number"}
@@ -98,9 +98,9 @@
     local current_sessions = {}
     local cancels = {}
     return function(name, multipart, session_id, clients, callback)
-      vim.validate {clients = {clients, "table"}}
+      coq.validate {clients = {clients, "table"}}
       local n_clients, client_map = unpack(clients)
-      vim.validate {
+      coq.validate {
         name = {name, "string"},
         session_id = {session_id, "number"},
         n_clients = {n_clients, "number"},
@@ -128,7 +128,7 @@
       end
 
       local on_resp_old = function(err, method, resp, client_id)
-        vim.validate {
+        coq.validate {
           method = {method, "string", true}
         }
 
@@ -187,7 +187,7 @@
   local _ = nil
 
   local supports_method = function(client, lsp_method, lsp_capability)
-    vim.validate {
+    coq.validate {
       client = {client, "table"},
       lsp_method = {lsp_method, "string"},
       lsp_capability = {lsp_capability, "string", true}
@@ -213,7 +213,7 @@
       lsp_capability)
       local filter = make_filter(include_clients, client_names)
 
-      vim.validate {
+      coq.validate {
         buf = {buf, "number"},
         lsp_method = {lsp_method, "string"},
         lsp_capability = {lsp_capability, "string", true},
@@ -242,7 +242,7 @@
       lsp_method,
       make_params,
       handler)
-      vim.validate {
+      coq.validate {
         buf = {buf, "number"},
         make_params = {make_params, "function"},
         clients = {clients, "table"},
@@ -258,7 +258,7 @@
       end
 
       for _, client in pairs(clients) do
-        vim.validate {client = {client, "table"}}
+        coq.validate {client = {client, "table"}}
 
         local request_params = make_params(client)
 
@@ -291,7 +291,7 @@
       session_id,
       client_names,
       pos)
-      vim.validate {
+      coq.validate {
         lsp_method = {lsp_method, "string"},
         lsp_capability = {lsp_capability, "string", true},
         client_names = {client_names, "table"},
@@ -300,7 +300,7 @@
         session_id = {session_id, "number"}
       }
       local row, col8, col16, col32 = unpack(pos)
-      vim.validate {
+      coq.validate {
         row = {row, "number"},
         col8 = {col8, "number"},
         col16 = {col16, "number"},
@@ -376,7 +376,7 @@
     end
 
     COQ.lsp_resolve = function(name, multipart, session_id, client_names, item)
-      vim.validate {
+      coq.validate {
         name = {name, "string"},
         session_id = {session_id, "number"},
         client_names = {client_names, "table"},
@@ -404,8 +404,8 @@
     end
 
     COQ.lsp_command = function(name, multipart, session_id, client_names, cmd)
-      vim.validate {cmd = {cmd, "table"}}
-      vim.validate {
+      coq.validate {cmd = {cmd, "table"}}
+      coq.validate {
         name = {name, "string"},
         session_id = {session_id, "number"},
         client_names = {client_names, "table"},
@@ -437,7 +437,7 @@
 
   (function()
     local freeze = function(name, is_list, original)
-      vim.validate {
+      coq.validate {
         name = {name, "string"},
         is_list = {is_list, "boolean"},
         original = {original, "table"}
@@ -467,7 +467,7 @@
 
     local lua_clients = function(key, include_clients, client_names)
       local filter = make_filter(include_clients, client_names)
-      vim.validate {
+      coq.validate {
         key = {key, "string"},
         filter = {filter, "function"}
       }
@@ -483,7 +483,7 @@
               type(source[key]) == "function"
            then
             local offset_encoding = source.offset_encoding or "utf-8"
-            vim.validate {
+            coq.validate {
               offset_encoding = {offset_encoding, "string"}
             }
             names[id] = {
@@ -520,7 +520,7 @@
       client_names,
       method,
       args)
-      vim.validate {
+      coq.validate {
         args = {args, "table"},
         key = {key, "string"},
         method = {method, "string"},

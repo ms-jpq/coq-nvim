@@ -2,9 +2,11 @@ from asyncio import AbstractEventLoop, Event
 from asyncio import Lock as ALock
 from asyncio import get_running_loop, run_coroutine_threadsafe, sleep, wrap_future
 from dataclasses import dataclass, replace
+from datetime import timedelta
 from functools import lru_cache
 from itertools import count
 from threading import Lock
+from time import monotonic
 from typing import (
     AbstractSet,
     Any,
@@ -32,13 +34,16 @@ from ...shared.types import UTF8, UTF16, UTF32, Encoding
 @dataclass(frozen=True)
 class _Client:
     name: Optional[str]
+    peers: AbstractSet[str]
     offset_encoding: Encoding
+    elapsed: timedelta
     message: Any
 
 
 @dataclass(frozen=True)
 class _Session:
     uid: int
+    instance: float
     done: bool
     acc: MutableSequence[Tuple[_Client, Optional[int]]]
 
@@ -53,6 +58,7 @@ class _Payload:
     client: Optional[str]
     done: bool
     reply: Any
+    client_names: Sequence[Optional[str]] = ()
 
 
 _DECODER = new_decoder[_Payload](_Payload)
@@ -107,20 +113,25 @@ async def _lsp_notify(stack: Stack, rpayload: _Payload) -> None:
     async def cont() -> None:
         with _LOCK:
             state = _STATE.get(payload.name)
+        assert state
 
-        if not state or payload.uid >= state.uid:
+        if payload.uid >= state.uid:
             encoding = (payload.offset_encoding or "").casefold().replace("-", "")
             offset_encoding = _ENCODING_MAP.get(encoding, UTF16)
             client = _Client(
                 name=payload.client,
+                peers={name for name in payload.client_names if name},
                 offset_encoding=offset_encoding,
+                elapsed=timedelta(seconds=monotonic() - state.instance),
                 message=payload.reply,
             )
             acc = [
                 *(state.acc if state and payload.uid == state.uid else ()),
                 (client, payload.multipart),
             ]
-            session = _Session(uid=payload.uid, done=payload.done, acc=acc)
+            session = _Session(
+                uid=payload.uid, instance=state.instance, done=payload.done, acc=acc
+            )
             with _LOCK:
                 _STATE[payload.name] = session
 
@@ -141,7 +152,7 @@ async def async_request(
         (_, lock, activity), uid = _events(name), next(_uids(name))
 
         with _LOCK:
-            _STATE[name] = _Session(uid=uid, done=False, acc=[])
+            _STATE[name] = _Session(uid=uid, instance=monotonic(), done=False, acc=[])
 
         # wake up previous generators
         activity.set()
@@ -155,35 +166,35 @@ async def async_request(
         while True:
             with _LOCK:
                 state = _STATE.get(name)
+            assert state
 
-            if state:
-                if state.uid == uid:
-                    while state.acc:
-                        client, multipart = state.acc.pop()
-                        if multipart:
-                            async for part in _lsp_pull(
-                                multipart, name=name, client=client.name, uid=uid
-                            ):
-                                if isinstance(
-                                    client.message, MutableMapping
-                                ) and isinstance(client.message.get("items"), Sequence):
-                                    message = {**client.message, "items": part}
-                                    yield replace(client, message=message)
-                                else:
-                                    yield replace(client, message=part)
-                        else:
-                            yield client
-                    if state.done:
-                        with _LOCK:
-                            _STATE.pop(name, None)
-                        break
-                elif state.uid > uid:
+            if state.uid == uid:
+                while state.acc:
+                    client, multipart = state.acc.pop()
+                    if multipart:
+                        async for part in _lsp_pull(
+                            multipart, name=name, client=client.name, uid=uid
+                        ):
+                            if isinstance(
+                                client.message, MutableMapping
+                            ) and isinstance(client.message.get("items"), Sequence):
+                                message = {**client.message, "items": part}
+                                yield replace(client, message=message)
+                            else:
+                                yield replace(client, message=part)
+                    else:
+                        yield client
+                if state.done:
+                    with _LOCK:
+                        _STATE.pop(name, None)
                     break
-                else:
-                    log.info(
-                        "%s", f"<><> DELAYED LSP RESP <><> :: {name} {state.uid} {uid}"
-                    )
-                    break
+            elif state.uid > uid:
+                break
+            else:
+                log.info(
+                    "%s", f"<><> DELAYED LSP RESP <><> :: {name} {state.uid} {uid}"
+                )
+                break
 
             await activity.wait()
 

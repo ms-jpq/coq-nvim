@@ -232,7 +232,7 @@ class Worker(BaseWorker[PathsClient, None]):
     def interrupt(self) -> None:
         pass
 
-    async def _work(self, context: Context) -> AsyncIterator[Completion]:
+    async def _work(self, context: Context, timeout: float) -> AsyncIterator[Completion]:
         async with self._work_lock:
             line = context.line_before + context.words_after
 

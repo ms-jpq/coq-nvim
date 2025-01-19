@@ -143,7 +143,7 @@ class Worker(BaseWorker[LSPClient, None]):
 
             await self._with_interrupt(cont())
 
-    async def _work(self, context: Context) -> AsyncIterator[Completion]:
+    async def _work(self, context: Context, timeout: float) -> AsyncIterator[Completion]:
         inline_shift = False
         limit = (
             BIGGEST_INT

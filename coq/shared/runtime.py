@@ -147,7 +147,7 @@ class Supervisor:
                     token = self._reviewer.begin(context)
                     tasks = {
                         worker.supervised(
-                            context, token=token, now=now, acc=acc
+                            context, token=token, now=now, timeout=timeout, acc=acc
                         ): worker._options.always_wait
                         for worker in self._workers
                     }
@@ -225,7 +225,7 @@ class Worker(Interruptible, Generic[_O_co, _T_co]):
             await cancel(task)
 
     @abstractmethod
-    def _work(self, context: Context) -> AsyncIterator[Completion]: ...
+    def _work(self, context: Context, timeout: float) -> AsyncIterator[Completion]: ...
 
     async def idle(self) -> None:
         async def cont() -> None:
@@ -239,6 +239,7 @@ class Worker(Interruptible, Generic[_O_co, _T_co]):
         context: Context,
         token: Any,
         now: float,
+        timeout: float,
         acc: MutableSequence[Metric],
     ) -> Future:
         prev = self._work_fut
@@ -257,7 +258,7 @@ class Worker(Interruptible, Generic[_O_co, _T_co]):
                 )
                 try:
                     async for items, completion in aenumerate(
-                        self._work(context), start=1
+                        self._work(context, timeout=timeout), start=1
                     ):
                         metric = self._supervisor._reviewer.trans(
                             token, instance=instance, completion=completion

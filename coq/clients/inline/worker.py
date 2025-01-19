@@ -70,7 +70,7 @@ class Worker(BaseWorker[LSPInlineClient, None]):
 
             await self._with_interrupt(cont())
 
-    async def _work(self, context: Context) -> AsyncIterator[Completion]:
+    async def _work(self, context: Context, timeout: float) -> AsyncIterator[Completion]:
         async with self._work_lock, self._working:
             try:
                 _, _, cached = self._cache.apply_cache(

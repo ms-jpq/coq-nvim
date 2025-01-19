@@ -100,8 +100,8 @@ class Worker(BaseWorker[LSPClient, None]):
         with self._interrupt():
             self._cache.interrupt()
 
-    def _request(self, context: Context) -> AsyncIterator[LSPcomp]:
-        return comp_lsp(
+    async def _request(self, context: Context) -> AsyncIterator[LSPcomp]:
+        rows = comp_lsp(
             short_name=self._options.short_name,
             always_on_top=self._options.always_on_top,
             weight_adjust=self._options.weight_adjust,
@@ -109,6 +109,8 @@ class Worker(BaseWorker[LSPClient, None]):
             chunk=self._max_results,
             clients=set(),
         )
+        async for row, peers, elapsed in rows:
+            yield row
 
     async def _poll(self) -> None:
         while True:

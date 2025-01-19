@@ -1,10 +1,13 @@
-from typing import AbstractSet, AsyncIterator, Optional, cast
+from datetime import timedelta
+from typing import AbstractSet, AsyncIterator, Optional, Tuple, cast
 
 from ...shared.types import Context, ExternLSP, ExternLUA
 from ..parse import parse, parse_inline
 from ..protocol import protocol
 from ..types import CompletionResponse, InLineCompletionResponse, LSPcomp
 from .request import async_request
+
+_Rsp = Tuple[LSPcomp, AbstractSet[str], timedelta]
 
 
 async def comp_lsp(
@@ -14,7 +17,7 @@ async def comp_lsp(
     context: Context,
     chunk: int,
     clients: AbstractSet[str],
-) -> AsyncIterator[LSPcomp]:
+) -> AsyncIterator[_Rsp]:
     pc = await protocol()
 
     async for client in async_request("lsp_comp", chunk, clients, context.cursor):
@@ -30,7 +33,7 @@ async def comp_lsp(
             weight_adjust=weight_adjust,
             resp=resp,
         )
-        yield parsed
+        yield parsed, client.peers, client.elapsed
 
 
 async def comp_lsp_inline(
@@ -40,7 +43,7 @@ async def comp_lsp_inline(
     context: Context,
     chunk: int,
     clients: AbstractSet[str],
-) -> AsyncIterator[LSPcomp]:
+) -> AsyncIterator[_Rsp]:
     async for client in async_request(
         "lsp_inline_comp", chunk, clients, context.cursor
     ):
@@ -56,7 +59,7 @@ async def comp_lsp_inline(
             weight_adjust=weight_adjust,
             resp=resp,
         )
-        yield parsed
+        yield parsed, client.peers, client.elapsed
 
 
 async def comp_thirdparty(

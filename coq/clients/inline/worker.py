@@ -42,8 +42,8 @@ class Worker(BaseWorker[LSPInlineClient, None]):
         with self._interrupt():
             self._cache.interrupt()
 
-    def _request(self, context: Context) -> AsyncIterator[LSPcomp]:
-        return comp_lsp_inline(
+    async def _request(self, context: Context) -> AsyncIterator[LSPcomp]:
+        rows = comp_lsp_inline(
             short_name=self._options.short_name,
             always_on_top=self._options.always_on_top,
             weight_adjust=self._options.weight_adjust,
@@ -51,6 +51,8 @@ class Worker(BaseWorker[LSPInlineClient, None]):
             chunk=self._supervisor.match.max_results * 2,
             clients=set(),
         )
+        async for row, _, _ in rows:
+            yield row
 
     async def _poll(self) -> None:
         while True:
@@ -71,7 +73,9 @@ class Worker(BaseWorker[LSPInlineClient, None]):
     async def _work(self, context: Context) -> AsyncIterator[Completion]:
         async with self._work_lock, self._working:
             try:
-                _, _, cached = self._cache.apply_cache(context, always=True, inline_shift=True)
+                _, _, cached = self._cache.apply_cache(
+                    context, always=True, inline_shift=True
+                )
                 lsp_stream = (
                     self._request(context)
                     if self._options.live_pulling

@@ -124,7 +124,7 @@ def _consolidate(
             for reg in chain.from_iterable(acc.values())
             if _overlap(region, reg)
         ):
-            log.warn("%s", f"snippet region overlapped -- {overlapped}")
+            log.warning("%s", f"snippet region overlapped -- {overlapped}")
         else:
             a = acc.setdefault(idx, [])
             a.append(region)

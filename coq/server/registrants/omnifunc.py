@@ -188,7 +188,7 @@ async def _comp_done(stack: Stack, event: Mapping[str, Any]) -> None:
                             commit_id=uuid4(),
                         )
                     else:
-                        log.warn("%s", "delayed completion")
+                        log.warning("%s", "delayed completion")
 
 
 _ = (

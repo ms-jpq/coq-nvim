@@ -55,7 +55,7 @@ def load_direct(
                     )
                 except LoadError as e:
                     if ignore_error:
-                        log.warn("%s", e)
+                        log.warning("%s", e)
                     else:
                         raise
                 else:

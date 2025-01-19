@@ -228,7 +228,7 @@ async def _rolling_load(
                 Failed to load compiled snips
                 ${e}
                 """.rstrip()
-            log.warn("%s", Template(dedent(tpl)).substitute(e=type(e)))
+            log.warning("%s", Template(dedent(tpl)).substitute(e=type(e)))
         else:
             await worker.populate(path, mtime=mtime, loaded=loaded)
             if not silent:

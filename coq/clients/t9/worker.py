@@ -90,13 +90,13 @@ def _decode(
         or not isinstance((old_prefix := reply.get("old_prefix")), str)
         or not isinstance((results := reply.get("results")), Sequence)
     ):
-        log.warn("%s", reply)
+        log.warning("%s", reply)
     else:
         for result in results:
             try:
                 resp = _DECODER(result)
             except DecodeError as e:
-                log.warn("%s", e)
+                log.warning("%s", e)
             else:
                 new_text = resp.new_prefix + resp.new_suffix
                 edit = ContextualEdit(
@@ -262,7 +262,7 @@ class Worker(BaseWorker[T9Client, None]):
                         await self._proc.stdin.drain()
                         out = await _readline(self._proc.stdout)
                     except (ConnectionError, IncompleteReadError) as e:
-                        log.warn("%s", e)
+                        log.warning("%s", e)
                         await self._clean()
                         return None
                     else:
@@ -296,7 +296,7 @@ class Worker(BaseWorker[T9Client, None]):
                     try:
                         resp = loads(reply)
                     except JSONDecodeError as e:
-                        log.warn("%s", e)
+                        log.warning("%s", e)
                     else:
                         if isinstance(resp, Mapping):
                             self._t9_locked = resp.get("is_locked", False)

@@ -118,7 +118,7 @@ async def eval_snips(
         grammar = SnippetGrammar[maybe_grammar]
     except KeyError:
         grammar = SnippetGrammar.lsp
-        log.warn("%s", "bad snippet grammar -- reverting to LSP")
+        log.warning("%s", "bad snippet grammar -- reverting to LSP")
 
     win = await Window.get_current()
     buf = await win.get_buf()

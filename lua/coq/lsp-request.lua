@@ -115,8 +115,16 @@
       )
 
       local new_payload = function()
+        local client_names = {}
+        for _, client in pairs(client_map) do
+          local client_name = client.name
+          coq.validate {client_name = {client_name, "string", true}}
+          table.insert(client_names, client_name or vim.NIL)
+        end
+
         return {
           client = vim.NIL,
+          client_names = client_names,
           done = true,
           method = vim.NIL,
           multipart = multipart,

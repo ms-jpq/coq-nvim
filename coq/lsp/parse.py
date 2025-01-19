@@ -237,7 +237,7 @@ def parse_item(
     else:
         go, parsed = _item_parser(item)
         if not go:
-            log.warn("%s -> %s", client, parsed)
+            log.warning("%s -> %s", client, parsed)
             return None
         else:
             assert isinstance(parsed, CompletionItem)
@@ -303,7 +303,7 @@ def parse_inline_item(
         go, parsed = _inline_item_parser(item)
         if not go:
             if "kind" not in item:
-                log.warn("%s -> %s", client, parsed)
+                log.warning("%s -> %s", client, parsed)
             return None
         else:
             assert isinstance(parsed, InlineCompletionItem)
@@ -359,7 +359,7 @@ def parse(
         is_complete = _falsy(resp.get("isIncomplete"))
 
         if not isinstance((items := resp.get("items")), Sequence):
-            log.warn("%s", f"Unknown LSP resp -- {type(items)}")
+            log.warning("%s", f"Unknown LSP resp -- {type(items)}")
             return LSPcomp(client=client, local_cache=is_complete, items=iter(()))
 
         else:
@@ -405,7 +405,7 @@ def parse(
         return LSPcomp(client=client, local_cache=True, items=comps)
 
     else:
-        log.warn("%s", f"Unknown LSP resp -- {type(resp)}")
+        log.warning("%s", f"Unknown LSP resp -- {type(resp)}")
         return LSPcomp(client=client, local_cache=False, items=iter(()))
 
 
@@ -426,7 +426,7 @@ def parse_inline(
 
     elif isinstance(resp, Mapping):
         if not isinstance((items := resp.get("items")), Sequence):
-            log.warn("%s", f"Unknown LSP resp -- {type(items)}")
+            log.warning("%s", f"Unknown LSP resp -- {type(items)}")
         else:
             comps = (
                 co1
@@ -467,6 +467,6 @@ def parse_inline(
         )
         return LSPcomp(client=client, local_cache=False, items=comps)
     else:
-        log.warn("%s", f"Unknown LSP resp -- {type(resp)}")
+        log.warning("%s", f"Unknown LSP resp -- {type(resp)}")
 
     return LSPcomp(client=client, local_cache=local_cache, items=iter(()))

@@ -438,7 +438,7 @@ async def apply(buf: Buffer, instructions: Iterable[EditInstruction]) -> _MarkSh
                 ctx = []
 
             msg = Template(dedent(tpl)).substitute(e=e, inst=inst, ctx=ctx)
-            log.warn("%s", msg)
+            log.warning("%s", msg)
 
     return m_shift
 
@@ -518,7 +518,7 @@ async def _view(
 
     for row in rows:
         if row.start < 0 or row.stop > state.context.line_count:
-            log.warn("%s", pformat(("BAD ROW", row, comp)))
+            log.warning("%s", pformat(("BAD ROW", row, comp)))
             return None
         else:
             atomic.buf_get_lines(buf, row.start, row.stop, True)
@@ -526,7 +526,7 @@ async def _view(
     try:
         lines = cast(Sequence[Sequence[str]], await atomic.commit(NoneType))
     except NvimError as e:
-        log.warn("%s", e)
+        log.warning("%s", e)
         return None
     else:
         return _lines(zip(rows, lines))

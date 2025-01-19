@@ -78,7 +78,7 @@ def _safexform(xform: Optional[TextTransform], text: str) -> str:
         try:
             return "".join(chain.from_iterable(xform(text)))
         except Exception as e:
-            log.warn("%s", e)
+            log.warning("%s", e)
             return text
 
 
@@ -127,7 +127,7 @@ async def _single_mark(
 
         {e}
         """
-        log.warn("%s", dedent(msg))
+        log.warning("%s", dedent(msg))
     else:
         await Nvim.exec("startinsert")
         state(inserted_pos=(row, col))

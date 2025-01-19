@@ -29,6 +29,7 @@ from ...shared.sql import BIGGEST_INT
 from ...shared.timeit import timeit
 from ...shared.types import Completion, Context, SnippetEdit
 from ..cache.worker import CacheWorker, sanitize_cached
+from .mul_bandit import MultiArmedBandit
 
 
 class _Src(Enum):
@@ -94,6 +95,7 @@ class Worker(BaseWorker[LSPClient, None]):
         self._local_cached = _LocalCache()
         self._working = Condition()
         self._max_results = self._supervisor.match.max_results
+        self._stats = MultiArmedBandit()
         self._ex.run(self._poll())
 
     def interrupt(self) -> None:
@@ -110,6 +112,7 @@ class Worker(BaseWorker[LSPClient, None]):
             clients=set(),
         )
         async for row, peers, elapsed in rows:
+            self._stats.update(peers, client=row.client, elapsed=elapsed)
             yield row
 
     async def _poll(self) -> None:

@@ -109,7 +109,7 @@ class Worker(BaseWorker[LSPClient, None]):
             weight_adjust=self._options.weight_adjust,
             context=context,
             chunk=self._max_results,
-            clients=set(),
+            clients={"tabby_ml"}
         )
         async for row, peers, elapsed in rows:
             self._stats.update(peers, client=row.client, elapsed=elapsed)

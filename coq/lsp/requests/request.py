@@ -113,16 +113,17 @@ async def _lsp_notify(stack: Stack, rpayload: _Payload) -> None:
     async def cont() -> None:
         with _LOCK:
             state = _STATE.get(payload.name)
-        assert state
 
-        if payload.uid >= state.uid:
+        if not state or payload.uid >= state.uid:
             encoding = (payload.offset_encoding or "").casefold().replace("-", "")
             offset_encoding = _ENCODING_MAP.get(encoding, UTF16)
             client = _Client(
                 name=payload.client,
                 peers={name for name in payload.client_names if name},
                 offset_encoding=offset_encoding,
-                elapsed=timedelta(seconds=monotonic() - state.instance),
+                elapsed=timedelta(
+                    seconds=monotonic() - state.instance if state else monotonic()
+                ),
                 message=payload.reply,
             )
             acc = [
@@ -130,7 +131,10 @@ async def _lsp_notify(stack: Stack, rpayload: _Payload) -> None:
                 (client, payload.multipart),
             ]
             session = _Session(
-                uid=payload.uid, instance=state.instance, done=payload.done, acc=acc
+                uid=payload.uid,
+                instance=state.instance if state else monotonic(),
+                done=payload.done,
+                acc=acc,
             )
             with _LOCK:
                 _STATE[payload.name] = session
@@ -166,35 +170,35 @@ async def async_request(
         while True:
             with _LOCK:
                 state = _STATE.get(name)
-            assert state
 
-            if state.uid == uid:
-                while state.acc:
-                    client, multipart = state.acc.pop()
-                    if multipart:
-                        async for part in _lsp_pull(
-                            multipart, name=name, client=client.name, uid=uid
-                        ):
-                            if isinstance(
-                                client.message, MutableMapping
-                            ) and isinstance(client.message.get("items"), Sequence):
-                                message = {**client.message, "items": part}
-                                yield replace(client, message=message)
-                            else:
-                                yield replace(client, message=part)
-                    else:
-                        yield client
-                if state.done:
-                    with _LOCK:
-                        _STATE.pop(name, None)
+            if state:
+                if state.uid == uid:
+                    while state.acc:
+                        client, multipart = state.acc.pop()
+                        if multipart:
+                            async for part in _lsp_pull(
+                                multipart, name=name, client=client.name, uid=uid
+                            ):
+                                if isinstance(
+                                    client.message, MutableMapping
+                                ) and isinstance(client.message.get("items"), Sequence):
+                                    message = {**client.message, "items": part}
+                                    yield replace(client, message=message)
+                                else:
+                                    yield replace(client, message=part)
+                        else:
+                            yield client
+                    if state.done:
+                        with _LOCK:
+                            _STATE.pop(name, None)
+                        break
+                elif state.uid > uid:
                     break
-            elif state.uid > uid:
-                break
-            else:
-                log.info(
-                    "%s", f"<><> DELAYED LSP RESP <><> :: {name} {state.uid} {uid}"
-                )
-                break
+                else:
+                    log.info(
+                        "%s", f"<><> DELAYED LSP RESP <><> :: {name} {state.uid} {uid}"
+                    )
+                    break
 
             await activity.wait()
 

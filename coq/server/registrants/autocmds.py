@@ -6,6 +6,7 @@ from pynvim_pp.buffer import Buffer
 from pynvim_pp.float_win import list_floatwins
 from pynvim_pp.nvim import Nvim
 from pynvim_pp.rpc_types import NvimError
+from pynvim_pp.settings import Settings
 from pynvim_pp.types import NoneType
 from std2.asyncio import Cancellation
 from std2.locale import si_prefixed_smol
@@ -20,6 +21,7 @@ from ...registry import NAMESPACE, atomic, autocmd, rpc
 from ..context import context
 from ..rt_types import Stack
 from ..state import state
+from .omnifunc import omnifunc
 
 _NS = uuid4()
 _die = Cancellation()
@@ -47,6 +49,20 @@ async def _new_cwd(stack: Stack) -> None:
 
 
 _ = autocmd("DirChanged") << f"lua {NAMESPACE}.{_new_cwd.method}()"
+
+
+@rpc()
+async def _set_complete_func(stack: Stack) -> None:
+    with suppress(NvimError):
+        settings = Settings()
+        settings["completefunc"] = f"v:lua.{NAMESPACE}.{omnifunc.method}"
+        await settings.drain().commit(NoneType)
+
+
+_ = (
+    autocmd("FileType", "CursorHold", "CursorHoldI", "InsertEnter")
+    << f"lua {NAMESPACE}.{_set_complete_func.method}()"
+)
 
 
 @rpc()
